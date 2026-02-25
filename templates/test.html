@@ -149,12 +149,13 @@
 
   <form method="POST" id="testForm">
     {% for q in questions %}
-    <div class="question-card" id="qcard-{{ loop.index }}">
-      <div class="q-num">{{ loop.index }}</div>
+    {% set q_index = loop.index %}
+    <div class="question-card" id="qcard-{{ q_index }}">
+      <div class="q-num">{{ q_index }}</div>
       <div class="q-text">{{ q.soal }}</div>
       <div class="options">
         {% for letter, text in [('a', q.pilihan_a), ('b', q.pilihan_b), ('c', q.pilihan_c), ('d', q.pilihan_d)] %}
-        <label class="option-label" onclick="markAnswered({{ loop.index }}, {{ forloop.parentloop.index }})">
+        <label class="option-label">
           <input type="radio" name="q_{{ q.id }}" value="{{ letter }}" onchange="updateProgress()">
           <span class="opt-indicator">{{ letter.upper() }}</span>
           <span class="opt-text">{{ text }}</span>
