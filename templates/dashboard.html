@@ -1,0 +1,200 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard — EduTest SMA{% endblock %}
+{% block extra_css %}
+<style>
+  .welcome-banner {
+    background: linear-gradient(135deg, #1A1200 0%, #3D2B00 50%, #2A1E00 100%);
+    border-radius: 20px;
+    padding: 2.5rem;
+    margin-bottom: 2rem;
+    color: white;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 8px 40px rgba(184,134,11,0.3);
+  }
+  .welcome-banner::before {
+    content: '';
+    position: absolute; top: 0; right: 0;
+    width: 300px; height: 300px;
+    background: radial-gradient(circle, rgba(255,215,0,0.12) 0%, transparent 70%);
+    transform: translate(30%, -30%);
+  }
+  .welcome-banner .emoji { font-size: 3rem; margin-bottom: 0.75rem; }
+  .welcome-banner h1 { font-family: 'Playfair Display', serif; font-size: 2rem; margin-bottom: 0.3rem; }
+  .welcome-banner h1 span { background: linear-gradient(135deg, #FFD700, #FFA500); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .welcome-banner p { color: rgba(255,215,0,0.55); font-size: 0.9rem; }
+  .info-chips { display: flex; gap: 1rem; margin-top: 1.25rem; flex-wrap: wrap; }
+  .chip { background: rgba(255,215,0,0.1); border: 1px solid rgba(255,215,0,0.2); border-radius: 20px; padding: 0.3rem 0.9rem; font-size: 0.82rem; color: rgba(255,215,0,0.75); }
+
+  .steps-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.25rem; margin-bottom: 2rem; }
+  @media (max-width: 900px) { .steps-grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 480px) { .steps-grid { grid-template-columns: 1fr; } }
+
+  .step-card {
+    background: white;
+    border-radius: 16px;
+    padding: 1.5rem;
+    border: 2px solid rgba(255,215,0,0.15);
+    transition: all 0.25s;
+    position: relative;
+    overflow: hidden;
+  }
+  .step-card:hover { transform: translateY(-3px); box-shadow: 0 8px 30px rgba(184,134,11,0.15); }
+  .step-card.completed { border-color: #28a745; background: linear-gradient(135deg, #f0fff4, white); }
+  .step-card.active { border-color: #FFA500; background: linear-gradient(135deg, #FFFDF0, white); }
+  .step-card.locked { opacity: 0.6; }
+  .step-num {
+    width: 32px; height: 32px;
+    border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 0.85rem; margin-bottom: 1rem;
+  }
+  .step-num.done { background: #28a745; color: white; }
+  .step-num.now { background: linear-gradient(135deg, #FFD700, #FFA500); color: #1A1200; }
+  .step-num.wait { background: #e9ecef; color: #6c757d; }
+  .step-card h3 { font-size: 1rem; font-weight: 700; margin-bottom: 0.3rem; color: #1A1200; }
+  .step-card p { font-size: 0.82rem; color: #6c757d; line-height: 1.4; }
+  .step-score { margin-top: 0.75rem; font-size: 1.4rem; font-weight: 700; }
+  .step-score.great { color: #28a745; }
+  .step-score.good { color: #FFA500; }
+  .step-score.ok { color: #dc3545; }
+  .step-action { margin-top: 1rem; }
+
+  .stats-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+  @media (max-width: 600px) { .stats-row { grid-template-columns: 1fr; } }
+  .stat-card { background: white; border-radius: 16px; padding: 1.5rem; border: 1px solid rgba(255,215,0,0.15); }
+  .stat-card h3 { font-size: 0.85rem; color: #6c757d; text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 0.75rem; }
+  .comparison { display: flex; align-items: center; gap: 1rem; }
+  .comp-item { text-align: center; flex: 1; }
+  .comp-val { font-family: 'Playfair Display', serif; font-size: 2rem; font-weight: 700; }
+  .comp-val.pre { color: #FFA500; }
+  .comp-val.post { color: #28a745; }
+  .comp-label { font-size: 0.75rem; color: #6c757d; margin-top: 0.2rem; }
+  .comp-arrow { font-size: 1.5rem; color: #dee2e6; }
+  .comp-diff { font-size: 1.5rem; font-weight: 700; }
+  .comp-diff.up { color: #28a745; }
+  .comp-diff.down { color: #dc3545; }
+  .comp-diff.same { color: #6c757d; }
+  .perf-label { display: flex; justify-content: space-between; font-size: 0.82rem; color: #6c757d; margin-bottom: 0.4rem; margin-top: 0.75rem; }
+  .progress { margin-bottom: 0.5rem; }
+</style>
+{% endblock %}
+{% block content %}
+<div class="main-content">
+  <div class="welcome-banner">
+    <div class="emoji">👋</div>
+    <h1>Halo, <span>{{ user.nama }}</span>!</h1>
+    <p>Ikuti alur pembelajaran: Pre-Test → Materi → Post-Test</p>
+    <div class="info-chips">
+      <span class="chip">📚 {{ user.kelas }}</span>
+      <span class="chip">🏷️ No. Absen {{ user.no_absen }}</span>
+      <span class="chip">👤 @{{ user.username }}</span>
+    </div>
+  </div>
+
+  <!-- Steps -->
+  <div class="steps-grid">
+    <!-- Step 1 -->
+    <div class="step-card {% if pre_result %}completed{% else %}active{% endif %}">
+      <div class="step-num {% if pre_result %}done{% else %}now{% endif %}">{% if pre_result %}✓{% else %}1{% endif %}</div>
+      <h3>📝 Pre-Test</h3>
+      <p>Uji kemampuan awalmu sebelum mempelajari materi</p>
+      {% if pre_result %}
+        <div class="step-score {% if pre_result.nilai >= 75 %}great{% elif pre_result.nilai >= 50 %}good{% else %}ok{% endif %}">{{ "%.0f"|format(pre_result.nilai) }}</div>
+        <div style="font-size:0.8rem; color:#6c757d;">{{ pre_result.jumlah_benar }}/{{ pre_result.total_soal }} benar</div>
+        <div class="step-action"><a href="{{ url_for('result', test_type='pre') }}" class="btn btn-outline btn-sm">Lihat Hasil</a></div>
+      {% else %}
+        <div class="step-action"><a href="{{ url_for('pretest') }}" class="btn btn-primary btn-sm">Mulai Pre-Test →</a></div>
+      {% endif %}
+    </div>
+
+    <!-- Step 2 -->
+    <div class="step-card {% if pre_result %}active{% else %}locked{% endif %}">
+      <div class="step-num {% if pre_result %}now{% else %}wait{% endif %}">2</div>
+      <h3>📖 Materi</h3>
+      <p>Pelajari materi dalam bentuk video, teks, dan audio</p>
+      {% if pre_result %}
+        <div class="step-action"><a href="{{ url_for('materi') }}" class="btn btn-primary btn-sm">Buka Materi →</a></div>
+      {% else %}
+        <div style="margin-top:1rem; font-size:0.8rem; color:#adb5bd;">🔒 Selesaikan pre-test dulu</div>
+      {% endif %}
+    </div>
+
+    <!-- Step 3 -->
+    <div class="step-card {% if post_result %}completed{% elif pre_result %}active{% else %}locked{% endif %}">
+      <div class="step-num {% if post_result %}done{% elif pre_result %}now{% else %}wait{% endif %}">{% if post_result %}✓{% else %}3{% endif %}</div>
+      <h3>📋 Post-Test</h3>
+      <p>Uji pemahamanmu setelah mempelajari materi</p>
+      {% if post_result %}
+        <div class="step-score {% if post_result.nilai >= 75 %}great{% elif post_result.nilai >= 50 %}good{% else %}ok{% endif %}">{{ "%.0f"|format(post_result.nilai) }}</div>
+        <div style="font-size:0.8rem; color:#6c757d;">{{ post_result.jumlah_benar }}/{{ post_result.total_soal }} benar</div>
+        <div class="step-action"><a href="{{ url_for('result', test_type='post') }}" class="btn btn-outline btn-sm">Lihat Hasil</a></div>
+      {% elif pre_result %}
+        <div class="step-action"><a href="{{ url_for('posttest') }}" class="btn btn-primary btn-sm">Mulai Post-Test →</a></div>
+      {% else %}
+        <div style="margin-top:1rem; font-size:0.8rem; color:#adb5bd;">🔒 Selesaikan pre-test dulu</div>
+      {% endif %}
+    </div>
+
+    <!-- Step 4 -->
+    <div class="step-card {% if post_result %}completed{% else %}locked{% endif %}">
+      <div class="step-num {% if post_result %}done{% else %}wait{% endif %}">{% if post_result %}✓{% else %}4{% endif %}</div>
+      <h3>🏆 Selesai!</h3>
+      <p>Lihat perbandingan nilaimu dan pantau perkembanganmu</p>
+      {% if post_result %}
+        <div style="margin-top:0.75rem; font-size:0.85rem; color:#28a745; font-weight:600;">✅ Semua tahap selesai!</div>
+      {% else %}
+        <div style="margin-top:1rem; font-size:0.8rem; color:#adb5bd;">🔒 Selesaikan semua tes</div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Comparison -->
+  {% if pre_result and post_result %}
+  <div class="stats-row">
+    <div class="stat-card">
+      <h3>📊 Perbandingan Nilai</h3>
+      <div class="comparison">
+        <div class="comp-item">
+          <div class="comp-val pre">{{ "%.0f"|format(pre_result.nilai) }}</div>
+          <div class="comp-label">Pre-Test</div>
+        </div>
+        <div class="comp-arrow">→</div>
+        <div class="comp-item">
+          <div class="comp-val post">{{ "%.0f"|format(post_result.nilai) }}</div>
+          <div class="comp-label">Post-Test</div>
+        </div>
+        <div class="comp-arrow">＝</div>
+        <div class="comp-item">
+          {% set diff = post_result.nilai - pre_result.nilai %}
+          <div class="comp-diff {% if diff > 0 %}up{% elif diff < 0 %}down{% else %}same{% endif %}">
+            {% if diff > 0 %}+{% endif %}{{ "%.0f"|format(diff) }}
+          </div>
+          <div class="comp-label">Selisih</div>
+        </div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <h3>📈 Progres Nilai</h3>
+      <div class="perf-label"><span>Pre-Test</span><span>{{ "%.0f"|format(pre_result.nilai) }}/100</span></div>
+      <div class="progress"><div class="progress-bar" style="width:{{ pre_result.nilai }}%"></div></div>
+      <div class="perf-label"><span>Post-Test</span><span>{{ "%.0f"|format(post_result.nilai) }}/100</span></div>
+      <div class="progress"><div class="progress-bar" style="width:{{ post_result.nilai }}%; background: linear-gradient(90deg, #28a745, #20c997)"></div></div>
+    </div>
+  </div>
+  {% elif pre_result %}
+  <div class="card card-gold" style="text-align:center; padding: 2rem;">
+    <div style="font-size:2rem; margin-bottom:0.75rem;">📖</div>
+    <h3 style="font-family:'Playfair Display',serif; margin-bottom:0.5rem;">Lanjutkan ke Materi!</h3>
+    <p style="color:#8B6914; margin-bottom:1.25rem;">Pre-test selesai dengan nilai <strong>{{ "%.0f"|format(pre_result.nilai) }}</strong>. Sekarang pelajari materinya.</p>
+    <a href="{{ url_for('materi') }}" class="btn btn-primary">Buka Materi Sekarang →</a>
+  </div>
+  {% else %}
+  <div class="card card-gold" style="text-align:center; padding: 2rem;">
+    <div style="font-size:2rem; margin-bottom:0.75rem;">🚀</div>
+    <h3 style="font-family:'Playfair Display',serif; margin-bottom:0.5rem;">Mulai Pre-Test Sekarang!</h3>
+    <p style="color:#8B6914; margin-bottom:1.25rem;">Kerjakan pre-test untuk mengetahui kemampuan awalmu sebelum belajar.</p>
+    <a href="{{ url_for('pretest') }}" class="btn btn-primary">Mulai Pre-Test →</a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,130 @@
+{% extends 'base.html' %}
+{% block title %}Hasil {{ test_type|capitalize }}-Test — EduTest SMA{% endblock %}
+{% block extra_css %}
+<style>
+  .result-hero {
+    background: linear-gradient(135deg, #1A1200 0%, #3D2B00 60%, #1A1200 100%);
+    border-radius: 24px;
+    padding: 3rem 2.5rem;
+    margin-bottom: 2rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .result-hero::before { content: ''; position: absolute; top:-80px; right:-80px; width: 250px; height: 250px; background: radial-gradient(circle, rgba(255,215,0,0.15), transparent 70%); }
+  .result-hero::after { content: ''; position: absolute; bottom:-60px; left:-60px; width: 200px; height: 200px; background: radial-gradient(circle, rgba(255,140,0,0.1), transparent 70%); }
+  .score-circle {
+    width: 160px; height: 160px;
+    border-radius: 50%;
+    margin: 0 auto 1.5rem;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    border: 4px solid rgba(255,215,0,0.3);
+    background: rgba(255,215,0,0.08);
+    position: relative; z-index: 1;
+  }
+  .score-num { font-family: 'Playfair Display', serif; font-size: 3.5rem; font-weight: 900; line-height: 1; }
+  .score-num.great { background: linear-gradient(135deg, #FFD700, #28a745); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .score-num.good { background: linear-gradient(135deg, #FFD700, #FFA500); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .score-num.ok { background: linear-gradient(135deg, #FFA500, #dc3545); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .score-label { font-size: 0.75rem; color: rgba(255,215,0,0.5); text-transform: uppercase; letter-spacing: 0.1em; }
+  .result-title { font-family: 'Playfair Display', serif; font-size: 1.75rem; color: white; margin-bottom: 0.5rem; position: relative; z-index: 1; }
+  .result-sub { color: rgba(255,215,0,0.5); font-size: 0.9rem; margin-bottom: 1.5rem; position: relative; z-index: 1; }
+  .result-chips { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; position: relative; z-index: 1; }
+  .chip-result {
+    background: rgba(255,215,0,0.1);
+    border: 1px solid rgba(255,215,0,0.25);
+    border-radius: 20px;
+    padding: 0.4rem 1rem;
+    color: rgba(255,215,0,0.75);
+    font-size: 0.85rem;
+    font-weight: 500;
+  }
+
+  .action-row { display: flex; gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap; }
+
+  .review-section h2 { font-family: 'Playfair Display', serif; font-size: 1.4rem; margin-bottom: 1.25rem; }
+  .review-card { background: white; border-radius: 14px; padding: 1.5rem; margin-bottom: 1rem; border: 2px solid rgba(255,215,0,0.12); }
+  .review-card.correct { border-left: 4px solid #28a745; }
+  .review-card.wrong { border-left: 4px solid #dc3545; }
+  .review-card.no-ans { border-left: 4px solid #6c757d; }
+  .review-q-header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem; }
+  .review-num { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.8rem; flex-shrink: 0; }
+  .review-num.c { background: #28a745; color: white; }
+  .review-num.w { background: #dc3545; color: white; }
+  .review-num.n { background: #6c757d; color: white; }
+  .review-q-text { font-weight: 600; font-size: 0.95rem; color: #1A1200; }
+  .review-answers { font-size: 0.85rem; margin-top: 0.5rem; }
+  .ans-correct { color: #28a745; font-weight: 600; }
+  .ans-wrong { color: #dc3545; text-decoration: line-through; }
+  .ans-label { color: #6c757d; }
+</style>
+{% endblock %}
+{% block content %}
+<div class="main-content">
+  {% set prct = result.nilai %}
+  <div class="result-hero">
+    <div class="score-circle">
+      <div class="score-num {% if prct >= 75 %}great{% elif prct >= 50 %}good{% else %}ok{% endif %}">{{ "%.0f"|format(prct) }}</div>
+      <div class="score-label">/ 100</div>
+    </div>
+    <div class="result-title">
+      {% if prct >= 75 %}🎉 Luar Biasa!
+      {% elif prct >= 50 %}👍 Lumayan Bagus!
+      {% else %}💪 Perlu Belajar Lagi!
+      {% endif %}
+    </div>
+    <div class="result-sub">Hasil {{ "Pre-Test" if test_type == 'pre' else "Post-Test" }}mu sudah tersimpan</div>
+    <div class="result-chips">
+      <span class="chip-result">✓ {{ result.jumlah_benar }} Benar</span>
+      <span class="chip-result">✗ {{ result.total_soal - result.jumlah_benar }} Salah</span>
+      <span class="chip-result">📊 {{ result.total_soal }} Total Soal</span>
+      <span class="chip-result">🕐 {{ result.waktu.strftime('%d %b %Y, %H:%M') }}</span>
+    </div>
+  </div>
+
+  <div class="action-row">
+    {% if test_type == 'pre' %}
+      <a href="{{ url_for('materi') }}" class="btn btn-primary">📖 Lanjut ke Materi →</a>
+    {% else %}
+      <a href="{{ url_for('dashboard') }}" class="btn btn-primary">🏠 Kembali ke Dashboard</a>
+    {% endif %}
+    <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">Dashboard</a>
+  </div>
+
+  <div class="review-section">
+    <h2>📋 Pembahasan Soal</h2>
+    {% for q in questions %}
+      {% set user_ans = jawaban_user.get(q.id|string, '') %}
+      {% set is_correct = user_ans == q.jawaban_benar %}
+      <div class="review-card {% if not user_ans %}no-ans{% elif is_correct %}correct{% else %}wrong{% endif %}">
+        <div class="review-q-header">
+          <div class="review-num {% if not user_ans %}n{% elif is_correct %}c{% else %}w{% endif %}">
+            {% if not user_ans %}—{% elif is_correct %}✓{% else %}✗{% endif %}
+          </div>
+          <div class="review-q-text">{{ loop.index }}. {{ q.soal }}</div>
+        </div>
+        <div class="review-answers">
+          {% if user_ans and not is_correct %}
+            <div><span class="ans-label">Jawaban kamu: </span><span class="ans-wrong">
+              {{ user_ans.upper() }}. 
+              {% if user_ans == 'a' %}{{ q.pilihan_a }}
+              {% elif user_ans == 'b' %}{{ q.pilihan_b }}
+              {% elif user_ans == 'c' %}{{ q.pilihan_c }}
+              {% elif user_ans == 'd' %}{{ q.pilihan_d }}{% endif %}
+            </span></div>
+          {% elif not user_ans %}
+            <div><span class="ans-label">Kamu tidak menjawab soal ini</span></div>
+          {% endif %}
+          <div><span class="ans-label">Jawaban benar: </span><span class="ans-correct">
+            {{ q.jawaban_benar.upper() }}.
+            {% if q.jawaban_benar == 'a' %}{{ q.pilihan_a }}
+            {% elif q.jawaban_benar == 'b' %}{{ q.pilihan_b }}
+            {% elif q.jawaban_benar == 'c' %}{{ q.pilihan_c }}
+            {% elif q.jawaban_benar == 'd' %}{{ q.pilihan_d }}{% endif %}
+          </span></div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,106 @@
+{% extends 'admin/base.html' %}
+{% block title %}Data Siswa — Admin EduTest{% endblock %}
+{% block admin_css %}
+<style>
+  .search-bar { display: flex; gap: 1rem; margin-bottom: 1.5rem; }
+  .search-bar input { flex: 1; padding: 0.6rem 1rem; border: 2px solid rgba(255,200,0,0.25); border-radius: 10px; font-family: 'DM Sans', sans-serif; }
+  .table-wrap { background: white; border-radius: 16px; overflow: hidden; border: 1px solid rgba(255,215,0,0.15); }
+  .progress-mini { background: #e9ecef; border-radius: 4px; height: 6px; width: 80px; overflow: hidden; display: inline-block; vertical-align: middle; }
+  .progress-mini-fill { height: 100%; border-radius: 4px; }
+  .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 5px; }
+  .dot-done { background: #28a745; }
+  .dot-pending { background: #dee2e6; }
+</style>
+{% endblock %}
+{% block admin_content %}
+<div class="page-header" style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:1rem;">
+  <div>
+    <h1>👥 Data Siswa</h1>
+    <p>{{ students|length }} siswa terdaftar</p>
+  </div>
+  <a href="{{ url_for('admin_export') }}" class="btn btn-primary">💾 Export CSV</a>
+</div>
+
+<div class="search-bar">
+  <input type="text" id="searchInput" placeholder="Cari nama, username, kelas..." oninput="filterTable()">
+</div>
+
+<div class="table-wrap">
+  <table class="table" id="siswaTable">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Nama</th>
+        <th>Kelas / Absen</th>
+        <th>Pre-Test</th>
+        <th>Post-Test</th>
+        <th>Progress</th>
+        <th>Aksi</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for s in students %}
+      {% set r = results[s.id] %}
+      <tr>
+        <td style="color:#6c757d; font-size:0.85rem;">{{ loop.index }}</td>
+        <td>
+          <div style="font-weight:600; color:#1A1200;">{{ s.nama }}</div>
+          <div style="font-size:0.78rem; color:#6c757d;">@{{ s.username }}</div>
+        </td>
+        <td>
+          <div style="font-size:0.88rem;">{{ s.kelas or '-' }}</div>
+          <div style="font-size:0.78rem; color:#6c757d;">No. {{ s.no_absen or '-' }}</div>
+        </td>
+        <td>
+          {% if r.pre %}
+            <div style="font-weight:700; color: {% if r.pre.nilai >= 75 %}#28a745{% elif r.pre.nilai >= 50 %}#FFA500{% else %}#dc3545{% endif %};">{{ "%.0f"|format(r.pre.nilai) }}</div>
+            <div style="font-size:0.75rem; color:#6c757d;">{{ r.pre.jumlah_benar }}/{{ r.pre.total_soal }}</div>
+          {% else %}
+            <span class="badge badge-warning">Belum</span>
+          {% endif %}
+        </td>
+        <td>
+          {% if r.post %}
+            <div style="font-weight:700; color: {% if r.post.nilai >= 75 %}#28a745{% elif r.post.nilai >= 50 %}#FFA500{% else %}#dc3545{% endif %};">{{ "%.0f"|format(r.post.nilai) }}</div>
+            <div style="font-size:0.75rem; color:#6c757d;">{{ r.post.jumlah_benar }}/{{ r.post.total_soal }}</div>
+          {% else %}
+            <span class="badge badge-warning">Belum</span>
+          {% endif %}
+        </td>
+        <td>
+          <span class="status-dot {% if r.pre %}dot-done{% else %}dot-pending{% endif %}"></span>Pre
+          &nbsp;
+          <span class="status-dot {% if r.post %}dot-done{% else %}dot-pending{% endif %}"></span>Post
+          {% if r.pre and r.post %}
+            {% set diff = r.post.nilai - r.pre.nilai %}
+            <div style="font-size:0.78rem; color: {% if diff > 0 %}#28a745{% elif diff < 0 %}#dc3545{% else %}#6c757d{% endif %}; font-weight:600;">
+              {% if diff > 0 %}▲ +{% elif diff < 0 %}▼ {% endif %}{{ "%.0f"|format(diff) }}
+            </div>
+          {% endif %}
+        </td>
+        <td>
+          <div style="display:flex; gap:0.4rem; flex-wrap:wrap;">
+            <form method="POST" action="{{ url_for('reset_siswa', user_id=s.id) }}" onsubmit="return confirm('Reset data test {{ s.nama }}?')">
+              <button type="submit" class="btn btn-outline btn-sm">🔄 Reset</button>
+            </form>
+            <form method="POST" action="{{ url_for('hapus_siswa', user_id=s.id) }}" onsubmit="return confirm('Hapus siswa {{ s.nama }}? Data tidak bisa dipulihkan!')">
+              <button type="submit" class="btn btn-danger btn-sm">🗑️</button>
+            </form>
+          </div>
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="7" style="text-align:center; color:#6c757d; padding:2rem;">Belum ada siswa terdaftar</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+<script>
+function filterTable() {
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  document.querySelectorAll('#siswaTable tbody tr').forEach(row => {
+    row.style.display = row.textContent.toLowerCase().includes(q) ? '' : 'none';
+  });
+}
+</script>
+{% endblock %}

@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+{% block extra_css %}
+<style>
+  .admin-layout { display: grid; grid-template-columns: 220px 1fr; min-height: calc(100vh - 64px); }
+  .admin-sidebar {
+    background: linear-gradient(180deg, #0D0800 0%, #1A1200 100%);
+    padding: 1.5rem 1rem;
+    border-right: 1px solid rgba(255,215,0,0.1);
+  }
+  .sidebar-title { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.12em; color: rgba(255,215,0,0.3); padding: 0 0.5rem; margin-bottom: 0.75rem; }
+  .sidebar-link {
+    display: flex; align-items: center; gap: 0.6rem;
+    padding: 0.65rem 0.75rem;
+    border-radius: 10px;
+    text-decoration: none;
+    color: rgba(255,215,0,0.55);
+    font-size: 0.88rem;
+    font-weight: 500;
+    transition: all 0.2s;
+    margin-bottom: 0.2rem;
+  }
+  .sidebar-link:hover { background: rgba(255,215,0,0.08); color: rgba(255,215,0,0.85); }
+  .sidebar-link.active { background: linear-gradient(135deg, rgba(255,215,0,0.15), rgba(255,165,0,0.1)); color: #FFD700; border: 1px solid rgba(255,215,0,0.2); }
+  .sidebar-link .icon { font-size: 1rem; }
+  .admin-main { background: #F8F4E8; }
+  .admin-content { padding: 2rem; max-width: 1000px; }
+  .page-header { margin-bottom: 1.75rem; }
+  .page-header h1 { font-family: 'Playfair Display', serif; font-size: 1.75rem; color: #1A1200; }
+  .page-header p { color: #8B6914; margin-top: 0.25rem; font-size: 0.88rem; }
+  @media (max-width: 768px) { .admin-layout { grid-template-columns: 1fr; } .admin-sidebar { display: none; } }
+</style>
+{% block admin_css %}{% endblock %}
+{% endblock %}
+{% block content %}
+<div class="admin-layout">
+  <div class="admin-sidebar">
+    <div class="sidebar-title">Menu Admin</div>
+    <a href="{{ url_for('admin_dashboard') }}" class="sidebar-link {% if request.endpoint == 'admin_dashboard' %}active{% endif %}">
+      <span class="icon">📊</span> Dashboard
+    </a>
+    <a href="{{ url_for('admin_siswa') }}" class="sidebar-link {% if request.endpoint == 'admin_siswa' %}active{% endif %}">
+      <span class="icon">👥</span> Data Siswa
+    </a>
+    <a href="{{ url_for('admin_hasil') }}" class="sidebar-link {% if request.endpoint == 'admin_hasil' %}active{% endif %}">
+      <span class="icon">📈</span> Hasil Test
+    </a>
+    <a href="{{ url_for('admin_soal') }}" class="sidebar-link {% if request.endpoint == 'admin_soal' %}active{% endif %}">
+      <span class="icon">📝</span> Kelola Soal
+    </a>
+    <a href="{{ url_for('admin_materi') }}" class="sidebar-link {% if request.endpoint == 'admin_materi' %}active{% endif %}">
+      <span class="icon">📚</span> Kelola Materi
+    </a>
+    <div style="border-top:1px solid rgba(255,215,0,0.1); margin: 1rem 0;"></div>
+    <a href="{{ url_for('admin_export') }}" class="sidebar-link">
+      <span class="icon">💾</span> Export CSV
+    </a>
+  </div>
+  <div class="admin-main">
+    <div class="admin-content">
+      {% block admin_content %}{% endblock %}
+    </div>
+  </div>
+</div>
+{% endblock %}

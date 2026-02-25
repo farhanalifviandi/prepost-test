@@ -1,0 +1,71 @@
+{% extends 'admin/base.html' %}
+{% block title %}Kelola Materi — Admin EduTest{% endblock %}
+{% block admin_css %}
+<style>
+  .materi-admin-card { background: white; border-radius: 14px; padding: 1.25rem; margin-bottom: 1rem; border: 1px solid rgba(255,215,0,0.15); display: flex; gap: 1rem; align-items: flex-start; }
+  .type-badge { padding: 0.25rem 0.7rem; border-radius: 20px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; }
+  .type-video { background: rgba(255,107,53,0.15); color: #FF6B35; }
+  .type-teks { background: rgba(26,18,0,0.1); color: #3D2B00; }
+  .type-audio { background: rgba(106,5,114,0.12); color: #6A0572; }
+  .add-form { background: white; border-radius: 16px; padding: 1.75rem; border: 2px dashed rgba(255,215,0,0.3); margin-bottom: 2rem; }
+  .add-form h3 { font-family: 'Playfair Display', serif; margin-bottom: 1.25rem; }
+  .help-text { font-size: 0.78rem; color: #6c757d; margin-top: 0.3rem; }
+</style>
+{% endblock %}
+{% block admin_content %}
+<div class="page-header">
+  <h1>📚 Kelola Materi</h1>
+  <p>Tambah dan hapus materi pembelajaran (video/teks/audio)</p>
+</div>
+
+<div class="add-form">
+  <h3>➕ Tambah Materi Baru</h3>
+  <form method="POST">
+    <input type="hidden" name="action" value="tambah">
+    <div class="form-group">
+      <label class="form-label">Judul Materi</label>
+      <input type="text" name="judul" class="form-control" required placeholder="Judul materi pembelajaran">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Tipe Materi</label>
+      <select name="tipe" class="form-control" required>
+        <option value="video">🎥 Video (YouTube Embed)</option>
+        <option value="teks">📄 Teks / HTML</option>
+        <option value="audio">🎧 Audio (MP3 URL)</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Konten</label>
+      <textarea name="konten" class="form-control" rows="4" required placeholder="Untuk video: URL embed YouTube (misal: https://www.youtube.com/embed/xxxxx)&#10;Untuk teks: Konten HTML&#10;Untuk audio: URL langsung file MP3"></textarea>
+      <div class="help-text">Video: https://www.youtube.com/embed/ID_VIDEO | Audio: URL file .mp3 langsung</div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Deskripsi</label>
+      <input type="text" name="deskripsi" class="form-control" placeholder="Deskripsi singkat materi">
+    </div>
+    <button type="submit" class="btn btn-primary">Tambah Materi</button>
+  </form>
+</div>
+
+<h3 style="font-family:'Playfair Display',serif; margin-bottom:1rem; font-size:1.1rem;">Daftar Materi ({{ materials|length }})</h3>
+{% for m in materials %}
+<div class="materi-admin-card">
+  <div style="font-size:1.5rem;">{% if m.tipe=='video' %}🎥{% elif m.tipe=='teks' %}📄{% else %}🎧{% endif %}</div>
+  <div style="flex:1;">
+    <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom:0.35rem; flex-wrap:wrap;">
+      <span style="font-weight:700; font-size:0.95rem;">{{ m.judul }}</span>
+      <span class="type-badge type-{{ m.tipe }}">{{ m.tipe }}</span>
+    </div>
+    {% if m.deskripsi %}<div style="font-size:0.83rem; color:#6c757d;">{{ m.deskripsi }}</div>{% endif %}
+    <div style="font-size:0.78rem; color:#adb5bd; margin-top:0.3rem; word-break:break-all;">{{ m.konten[:100] }}{% if m.konten|length > 100 %}...{% endif %}</div>
+  </div>
+  <form method="POST">
+    <input type="hidden" name="action" value="hapus">
+    <input type="hidden" name="id" value="{{ m.id }}">
+    <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Hapus materi ini?')">🗑️</button>
+  </form>
+</div>
+{% else %}
+<p style="color:#6c757d; text-align:center; padding:2rem;">Belum ada materi</p>
+{% endfor %}
+{% endblock %}

@@ -1,0 +1,142 @@
+{% extends 'admin/base.html' %}
+{% block title %}Hasil Test — Admin EduTest{% endblock %}
+{% block admin_css %}
+<style>
+  .filter-row { display: flex; gap: 0.75rem; margin-bottom: 1.5rem; flex-wrap: wrap; align-items: center; }
+  .filter-row select, .filter-row input { padding: 0.5rem 0.85rem; border: 2px solid rgba(255,200,0,0.2); border-radius: 8px; font-family: 'DM Sans', sans-serif; font-size: 0.88rem; }
+  .table-wrap { background: white; border-radius: 16px; overflow: hidden; border: 1px solid rgba(255,215,0,0.15); overflow-x: auto; }
+  .gain-up { color: #28a745; font-weight: 700; }
+  .gain-down { color: #dc3545; font-weight: 700; }
+  .gain-same { color: #6c757d; }
+  .summary-bar {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 1.5rem;
+  }
+  .sum-card { background: white; border-radius: 14px; padding: 1.25rem; border: 1px solid rgba(255,215,0,0.15); text-align:center; }
+  .sum-val { font-family: 'Playfair Display', serif; font-size: 1.75rem; font-weight: 700; }
+</style>
+{% endblock %}
+{% block admin_content %}
+<div class="page-header" style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:1rem;">
+  <div>
+    <h1>📈 Hasil Pre-Post Test</h1>
+    <p>Analisis perbandingan nilai pre-test dan post-test siswa</p>
+  </div>
+  <a href="{{ url_for('admin_export') }}" class="btn btn-primary">💾 Export CSV</a>
+</div>
+
+{% set ns = namespace(total=0, improved=0, declined=0, sum_pre=0, sum_post=0, count=0) %}
+{% for uid, d in paired.items() %}
+  {% if d.pre and d.post %}
+    {% set ns.count = ns.count + 1 %}
+    {% set ns.sum_pre = ns.sum_pre + d.pre.nilai %}
+    {% set ns.sum_post = ns.sum_post + d.post.nilai %}
+    {% if d.post.nilai > d.pre.nilai %}{% set ns.improved = ns.improved + 1 %}{% elif d.post.nilai < d.pre.nilai %}{% set ns.declined = ns.declined + 1 %}{% endif %}
+  {% endif %}
+{% endfor %}
+
+{% if ns.count > 0 %}
+<div class="summary-bar">
+  <div class="sum-card">
+    <div class="sum-val" style="color:#FFA500;">{{ "%.1f"|format(ns.sum_pre / ns.count) }}</div>
+    <div style="font-size:0.78rem; color:#6c757d; text-transform:uppercase; letter-spacing:.06em;">Avg Pre-Test</div>
+  </div>
+  <div class="sum-card">
+    <div class="sum-val" style="color:#28a745;">{{ "%.1f"|format(ns.sum_post / ns.count) }}</div>
+    <div style="font-size:0.78rem; color:#6c757d; text-transform:uppercase; letter-spacing:.06em;">Avg Post-Test</div>
+  </div>
+  <div class="sum-card">
+    <div class="sum-val" style="color: {% if ns.sum_post > ns.sum_pre %}#28a745{% else %}#dc3545{% endif %};">
+      {% set gain = (ns.sum_post - ns.sum_pre) / ns.count %}
+      {% if gain > 0 %}+{% endif %}{{ "%.1f"|format(gain) }}
+    </div>
+    <div style="font-size:0.78rem; color:#6c757d; text-transform:uppercase; letter-spacing:.06em;">Rata-rata Gain</div>
+  </div>
+</div>
+{% endif %}
+
+<div class="filter-row">
+  <input type="text" id="filterInput" placeholder="Cari nama/kelas..." oninput="filterRows()">
+  <select id="filterGain" onchange="filterRows()">
+    <option value="">Semua Perubahan</option>
+    <option value="up">▲ Meningkat</option>
+    <option value="down">▼ Menurun</option>
+    <option value="same">= Sama</option>
+  </select>
+</div>
+
+<div class="table-wrap">
+  <table class="table" id="hasilTable">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Nama Siswa</th>
+        <th>Kelas</th>
+        <th>Pre-Test</th>
+        <th>Post-Test</th>
+        <th>Selisih</th>
+        <th>Status</th>
+        <th>Tanggal</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for uid, d in paired.items() %}
+      {% set user = d.user %}
+      <tr data-name="{{ user.nama }}" data-kelas="{{ user.kelas }}"
+          data-gain="{% if d.pre and d.post %}{% if d.post.nilai > d.pre.nilai %}up{% elif d.post.nilai < d.pre.nilai %}down{% else %}same{% endif %}{% endif %}">
+        <td style="color:#6c757d; font-size:0.85rem;">{{ loop.index }}</td>
+        <td>
+          <div style="font-weight:600;">{{ user.nama }}</div>
+          <div style="font-size:0.78rem; color:#6c757d;">No. {{ user.no_absen or '-' }}</div>
+        </td>
+        <td style="font-size:0.88rem;">{{ user.kelas or '-' }}</td>
+        <td>
+          {% if d.pre %}
+            <span style="font-weight:700; font-size:1.1rem; color:#FFA500;">{{ "%.0f"|format(d.pre.nilai) }}</span>
+            <div style="font-size:0.75rem; color:#6c757d;">{{ d.pre.jumlah_benar }}/{{ d.pre.total_soal }} benar</div>
+          {% else %}<span class="badge badge-warning">Belum</span>{% endif %}
+        </td>
+        <td>
+          {% if d.post %}
+            <span style="font-weight:700; font-size:1.1rem; color:#28a745;">{{ "%.0f"|format(d.post.nilai) }}</span>
+            <div style="font-size:0.75rem; color:#6c757d;">{{ d.post.jumlah_benar }}/{{ d.post.total_soal }} benar</div>
+          {% else %}<span class="badge badge-warning">Belum</span>{% endif %}
+        </td>
+        <td>
+          {% if d.pre and d.post %}
+            {% set diff = d.post.nilai - d.pre.nilai %}
+            <span class="{% if diff > 0 %}gain-up{% elif diff < 0 %}gain-down{% else %}gain-same{% endif %}">
+              {% if diff > 0 %}▲ +{% elif diff < 0 %}▼ {% else %}= {% endif %}{{ "%.0f"|format(diff) }}
+            </span>
+          {% else %}-{% endif %}
+        </td>
+        <td>
+          {% if d.pre and d.post %}
+            {% set diff = d.post.nilai - d.pre.nilai %}
+            {% if diff > 0 %}<span class="badge badge-success">Meningkat</span>
+            {% elif diff < 0 %}<span class="badge badge-danger">Menurun</span>
+            {% else %}<span class="badge badge-info">Sama</span>{% endif %}
+          {% elif d.pre %}<span class="badge badge-warning">Belum Post-Test</span>
+          {% else %}<span class="badge badge-warning">Belum Mulai</span>{% endif %}
+        </td>
+        <td style="font-size:0.78rem; color:#6c757d;">
+          {% if d.post %}{{ d.post.waktu.strftime('%d/%m/%Y') }}{% elif d.pre %}{{ d.pre.waktu.strftime('%d/%m/%Y') }}{% else %}-{% endif %}
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="8" style="text-align:center; color:#6c757d; padding:2rem;">Belum ada data hasil test</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+<script>
+function filterRows() {
+  const q = document.getElementById('filterInput').value.toLowerCase();
+  const gain = document.getElementById('filterGain').value;
+  document.querySelectorAll('#hasilTable tbody tr').forEach(row => {
+    const matchText = row.dataset.name?.toLowerCase().includes(q) || row.dataset.kelas?.toLowerCase().includes(q);
+    const matchGain = !gain || row.dataset.gain === gain;
+    row.style.display = (matchText && matchGain) ? '' : 'none';
+  });
+}
+</script>
+{% endblock %}

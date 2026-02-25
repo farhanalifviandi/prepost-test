@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Registrasi — EduTest SMA</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root { --gold-1: #FFD700; --gold-2: #FFA500; --gold-3: #FF8C00; }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      font-family: 'DM Sans', sans-serif;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #0D0800 0%, #1A1200 30%, #2D1E00 60%, #1A1200 100%);
+      display: flex; align-items: center; justify-content: center;
+      position: relative; overflow: hidden; padding: 2rem 1rem;
+    }
+    .bg-glow { position: fixed; border-radius: 50%; filter: blur(80px); pointer-events: none; }
+    .bg-glow-1 { width: 400px; height: 400px; background: rgba(255,215,0,0.07); top: -100px; right: -100px; }
+    .bg-glow-2 { width: 300px; height: 300px; background: rgba(255,140,0,0.05); bottom: -50px; left: -50px; }
+    .dots { position: fixed; top:0; left:0; width:100%; height:100%; background-image: radial-gradient(rgba(255,215,0,0.05) 1px, transparent 1px); background-size: 32px 32px; pointer-events: none; }
+    .container { width: 100%; max-width: 500px; position: relative; z-index: 1; }
+    .logo-area { text-align: center; margin-bottom: 1.5rem; }
+    .logo-icon { width: 56px; height: 56px; background: linear-gradient(135deg, var(--gold-1), var(--gold-3)); border-radius: 14px; display: inline-flex; align-items: center; justify-content: center; font-size: 1.5rem; margin-bottom: 0.75rem; box-shadow: 0 8px 24px rgba(255,165,0,0.35); }
+    .logo-title { font-family: 'Playfair Display', serif; font-size: 1.6rem; font-weight: 900; background: linear-gradient(135deg, var(--gold-1), var(--gold-2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .card { background: rgba(255,255,255,0.04); backdrop-filter: blur(20px); border: 1px solid rgba(255,215,0,0.15); border-radius: 24px; padding: 2rem 2.5rem; box-shadow: 0 16px 64px rgba(0,0,0,0.4); }
+    .card-title { font-family: 'Playfair Display', serif; font-size: 1.4rem; color: white; margin-bottom: 0.25rem; }
+    .card-sub { color: rgba(255,215,0,0.45); font-size: 0.85rem; margin-bottom: 1.5rem; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .form-group { margin-bottom: 1rem; }
+    .form-label { display: block; font-weight: 600; color: rgba(255,215,0,0.7); margin-bottom: 0.35rem; font-size: 0.82rem; letter-spacing: 0.05em; text-transform: uppercase; }
+    .form-control { width: 100%; padding: 0.7rem 1rem; background: rgba(255,255,255,0.06); border: 1.5px solid rgba(255,215,0,0.2); border-radius: 10px; color: white; font-family: 'DM Sans', sans-serif; font-size: 0.93rem; transition: all 0.2s; }
+    .form-control:focus { outline: none; border-color: var(--gold-2); background: rgba(255,255,255,0.08); box-shadow: 0 0 0 3px rgba(255,165,0,0.12); }
+    .form-control::placeholder { color: rgba(255,215,0,0.22); }
+    select.form-control option { background: #1A1200; color: white; }
+    .btn-register { width: 100%; padding: 0.82rem; background: linear-gradient(135deg, var(--gold-1) 0%, var(--gold-2) 100%); color: #1A1200; font-weight: 700; font-size: 1rem; border: none; border-radius: 12px; cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.25s; box-shadow: 0 4px 20px rgba(255,165,0,0.3); margin-top: 0.5rem; }
+    .btn-register:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(255,165,0,0.45); }
+    .login-link { text-align: center; margin-top: 1.25rem; }
+    .login-link a { color: var(--gold-1); font-weight: 600; text-decoration: none; }
+    .login-link span { color: rgba(255,215,0,0.4); font-size: 0.9rem; }
+    .alert { padding: 0.7rem 1rem; border-radius: 10px; margin-bottom: 1rem; font-size: 0.87rem; font-weight: 500; }
+    .alert-danger { background: rgba(220,53,69,0.2); color: #ff9999; border: 1px solid rgba(220,53,69,0.3); }
+    .info-box { background: rgba(255,215,0,0.06); border: 1px solid rgba(255,215,0,0.15); border-radius: 10px; padding: 0.75rem 1rem; margin-bottom: 1.25rem; font-size: 0.83rem; color: rgba(255,215,0,0.6); }
+    .info-box strong { color: rgba(255,215,0,0.85); }
+    @media (max-width: 480px) { .form-row { grid-template-columns: 1fr; } .card { padding: 1.5rem; } }
+  </style>
+</head>
+<body>
+  <div class="bg-glow bg-glow-1"></div>
+  <div class="bg-glow bg-glow-2"></div>
+  <div class="dots"></div>
+  <div class="container">
+    <div class="logo-area">
+      <div class="logo-icon">📚</div>
+      <div class="logo-title">EduTest SMA</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Daftar Akun Siswa</div>
+      <div class="card-sub">Buat akun untuk mengikuti pre-post test</div>
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }}">{{ message }}</div>
+        {% endfor %}
+      {% endwith %}
+      <div class="info-box">
+        <strong>ℹ️ Informasi:</strong> Akun ini khusus untuk siswa. Untuk akun admin, hubungi guru atau pengajar.
+      </div>
+      <form method="POST">
+        <div class="form-group">
+          <label class="form-label">Nama Lengkap</label>
+          <input type="text" name="nama" class="form-control" placeholder="Nama lengkap kamu" required>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Kelas</label>
+            <select name="kelas" class="form-control" required>
+              <option value="">Pilih Kelas</option>
+              <optgroup label="Kelas X">
+                <option>X IPA 1</option><option>X IPA 2</option><option>X IPS 1</option><option>X IPS 2</option>
+              </optgroup>
+              <optgroup label="Kelas XI">
+                <option>XI IPA 1</option><option>XI IPA 2</option><option>XI IPS 1</option><option>XI IPS 2</option>
+              </optgroup>
+              <optgroup label="Kelas XII">
+                <option>XII IPA 1</option><option>XII IPA 2</option><option>XII IPS 1</option><option>XII IPS 2</option>
+              </optgroup>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">No. Absen</label>
+            <input type="text" name="no_absen" class="form-control" placeholder="cth: 01" required>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Username</label>
+          <input type="text" name="username" class="form-control" placeholder="Buat username unikmu" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <input type="password" name="password" class="form-control" placeholder="Buat password yang kuat" required minlength="6">
+        </div>
+        <button type="submit" class="btn-register">Daftar Sekarang →</button>
+      </form>
+      <div class="login-link">
+        <span>Sudah punya akun? </span>
+        <a href="{{ url_for('login') }}">Masuk di sini</a>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

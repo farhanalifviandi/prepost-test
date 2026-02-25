@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+{% block title %}Materi Pembelajaran — EduTest SMA{% endblock %}
+{% block extra_css %}
+<style>
+  .materi-header {
+    background: linear-gradient(135deg, #1A1200, #3D2B00);
+    border-radius: 20px;
+    padding: 2.5rem;
+    margin-bottom: 2rem;
+    color: white;
+  }
+  .materi-header h1 { font-family: 'Playfair Display', serif; font-size: 2rem; margin-bottom: 0.4rem; }
+  .materi-header h1 span { background: linear-gradient(135deg, #FFD700, #FFA500); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .materi-header p { color: rgba(255,215,0,0.5); }
+
+  .materi-grid { display: grid; gap: 1.5rem; }
+  .materi-card {
+    background: white;
+    border-radius: 20px;
+    overflow: hidden;
+    border: 2px solid rgba(255,215,0,0.12);
+    transition: all 0.25s;
+  }
+  .materi-card:hover { transform: translateY(-3px); box-shadow: 0 10px 40px rgba(184,134,11,0.15); border-color: rgba(255,165,0,0.3); }
+  .materi-type-header {
+    padding: 1rem 1.5rem;
+    display: flex; align-items: center; gap: 0.75rem;
+  }
+  .type-video { background: linear-gradient(135deg, #FF6B35, #F7C59F); }
+  .type-teks { background: linear-gradient(135deg, #1A1200, #3D2B00); }
+  .type-audio { background: linear-gradient(135deg, #6A0572, #AB83A1); }
+  .type-icon { font-size: 1.4rem; }
+  .type-label { font-weight: 700; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.1em; color: rgba(255,255,255,0.9); }
+  .type-title { color: white; font-weight: 600; font-size: 1rem; }
+
+  .materi-body { padding: 1.5rem; }
+  .materi-title { font-family: 'Playfair Display', serif; font-size: 1.3rem; font-weight: 700; margin-bottom: 0.5rem; color: #1A1200; }
+  .materi-desc { color: #6c757d; font-size: 0.9rem; margin-bottom: 1.25rem; }
+
+  .video-embed { width: 100%; aspect-ratio: 16/9; border-radius: 12px; overflow: hidden; }
+  .video-embed iframe { width: 100%; height: 100%; border: none; }
+
+  .teks-content {
+    background: #FFFDF0;
+    border: 1px solid rgba(255,215,0,0.2);
+    border-radius: 12px;
+    padding: 1.5rem;
+    font-size: 0.93rem;
+    line-height: 1.8;
+    color: #2D1E00;
+    max-height: 500px;
+    overflow-y: auto;
+  }
+  .teks-content h3 { font-family: 'Playfair Display', serif; color: #1A1200; margin-bottom: 0.75rem; }
+  .teks-content h4 { color: #3D2B00; margin: 1rem 0 0.5rem; }
+  .teks-content ul { padding-left: 1.5rem; }
+  .teks-content li { margin-bottom: 0.3rem; }
+  .teks-content blockquote { border-left: 3px solid #FFA500; padding-left: 1rem; color: #8B6914; font-style: italic; }
+  .teks-content strong { color: #1A1200; }
+
+  .audio-player { background: linear-gradient(135deg, #F8F0FF, #EDE0F5); border-radius: 12px; padding: 1.5rem; text-align: center; }
+  .audio-player audio { width: 100%; margin-top: 0.75rem; }
+  .audio-info { font-size: 0.85rem; color: #6A0572; font-weight: 600; }
+
+  .nav-bottom { display: flex; gap: 1rem; margin-top: 2rem; justify-content: space-between; align-items: center; flex-wrap: wrap; }
+</style>
+{% endblock %}
+{% block content %}
+<div class="main-content">
+  <div class="materi-header">
+    <h1>📖 <span>Materi Pembelajaran</span></h1>
+    <p>Pelajari seluruh materi di bawah ini sebelum mengerjakan post-test</p>
+  </div>
+
+  <div class="materi-grid">
+    {% for m in materials %}
+    <div class="materi-card">
+      <div class="materi-type-header type-{{ m.tipe }}">
+        <span class="type-icon">{% if m.tipe == 'video' %}🎥{% elif m.tipe == 'teks' %}📄{% else %}🎧{% endif %}</span>
+        <div>
+          <div class="type-label">{{ m.tipe|upper }}</div>
+          <div class="type-title">{{ m.judul }}</div>
+        </div>
+      </div>
+      <div class="materi-body">
+        <div class="materi-desc">{{ m.deskripsi }}</div>
+        {% if m.tipe == 'video' %}
+          <div class="video-embed">
+            <iframe src="{{ m.konten }}" allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>
+          </div>
+        {% elif m.tipe == 'teks' %}
+          <div class="teks-content">{{ m.konten|safe }}</div>
+        {% elif m.tipe == 'audio' %}
+          <div class="audio-player">
+            <div class="audio-info">🎧 {{ m.judul }}</div>
+            <audio controls>
+              <source src="{{ m.konten }}" type="audio/mpeg">
+              Browser Anda tidak mendukung audio.
+            </audio>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <div class="nav-bottom">
+    <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">← Dashboard</a>
+    <div style="text-align:center;">
+      <p style="color:#8B6914; font-size:0.88rem; margin-bottom:0.75rem;">Sudah mempelajari semua materi?</p>
+      <a href="{{ url_for('posttest') }}" class="btn btn-primary" style="font-size:1rem;">Mulai Post-Test →</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,128 @@
+{% extends 'admin/base.html' %}
+{% block title %}Kelola Soal — Admin EduTest{% endblock %}
+{% block admin_css %}
+<style>
+  .tabs { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; }
+  .tab-btn { padding: 0.5rem 1.25rem; border-radius: 20px; border: 2px solid rgba(255,200,0,0.25); background: white; cursor: pointer; font-family: 'DM Sans', sans-serif; font-weight: 600; font-size: 0.88rem; color: #8B6914; transition: all 0.2s; }
+  .tab-btn.active { background: linear-gradient(135deg, #FFD700, #FFA500); border-color: #FFA500; color: #1A1200; }
+  .tab-content { display: none; }
+  .tab-content.show { display: block; }
+  .soal-card { background: white; border-radius: 14px; padding: 1.25rem; margin-bottom: 1rem; border: 1px solid rgba(255,215,0,0.15); display: flex; gap: 1rem; align-items: flex-start; }
+  .soal-num { min-width: 30px; height: 30px; border-radius: 50%; background: linear-gradient(135deg, #FFD700, #FFA500); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.8rem; color: #1A1200; }
+  .soal-body { flex: 1; }
+  .soal-text { font-weight: 600; font-size: 0.95rem; margin-bottom: 0.5rem; }
+  .soal-opts { display: grid; grid-template-columns: 1fr 1fr; gap: 0.25rem 1rem; font-size: 0.82rem; color: #6c757d; }
+  .soal-opts .correct { color: #28a745; font-weight: 600; }
+  .add-form { background: white; border-radius: 16px; padding: 1.75rem; border: 2px dashed rgba(255,215,0,0.3); margin-bottom: 2rem; }
+  .add-form h3 { font-family: 'Playfair Display', serif; margin-bottom: 1.25rem; }
+  .form-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  @media (max-width: 600px) { .form-2col { grid-template-columns: 1fr; } .soal-opts { grid-template-columns: 1fr; } }
+</style>
+{% endblock %}
+{% block admin_content %}
+<div class="page-header">
+  <h1>📝 Kelola Soal</h1>
+  <p>Tambah, lihat, dan hapus soal pre-test & post-test</p>
+</div>
+
+<div class="add-form">
+  <h3>➕ Tambah Soal Baru</h3>
+  <form method="POST">
+    <input type="hidden" name="action" value="tambah">
+    <div class="form-group">
+      <label class="form-label">Jenis Test</label>
+      <select name="test_type" class="form-control" required>
+        <option value="pre">Pre-Test</option>
+        <option value="post">Post-Test</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Pertanyaan</label>
+      <textarea name="soal" class="form-control" rows="2" required placeholder="Tulis pertanyaan di sini..."></textarea>
+    </div>
+    <div class="form-2col">
+      <div class="form-group">
+        <label class="form-label">Pilihan A</label>
+        <input type="text" name="pilihan_a" class="form-control" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Pilihan B</label>
+        <input type="text" name="pilihan_b" class="form-control" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Pilihan C</label>
+        <input type="text" name="pilihan_c" class="form-control" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Pilihan D</label>
+        <input type="text" name="pilihan_d" class="form-control" required>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Jawaban Benar</label>
+      <select name="jawaban_benar" class="form-control" required>
+        <option value="a">A</option><option value="b">B</option><option value="c">C</option><option value="d">D</option>
+      </select>
+    </div>
+    <button type="submit" class="btn btn-primary">Tambah Soal</button>
+  </form>
+</div>
+
+<div class="tabs">
+  <button class="tab-btn active" onclick="switchTab('pre', this)">📝 Pre-Test ({{ pre_q|length }} soal)</button>
+  <button class="tab-btn" onclick="switchTab('post', this)">📋 Post-Test ({{ post_q|length }} soal)</button>
+</div>
+
+<div id="tab-pre" class="tab-content show">
+  {% for q in pre_q %}
+  <div class="soal-card">
+    <div class="soal-num">{{ loop.index }}</div>
+    <div class="soal-body">
+      <div class="soal-text">{{ q.soal }}</div>
+      <div class="soal-opts">
+        <span {% if q.jawaban_benar == 'a' %}class="correct"{% endif %}>A. {{ q.pilihan_a }}</span>
+        <span {% if q.jawaban_benar == 'b' %}class="correct"{% endif %}>B. {{ q.pilihan_b }}</span>
+        <span {% if q.jawaban_benar == 'c' %}class="correct"{% endif %}>C. {{ q.pilihan_c }}</span>
+        <span {% if q.jawaban_benar == 'd' %}class="correct"{% endif %}>D. {{ q.pilihan_d }}</span>
+      </div>
+    </div>
+    <form method="POST">
+      <input type="hidden" name="action" value="hapus">
+      <input type="hidden" name="id" value="{{ q.id }}">
+      <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Hapus soal ini?')">🗑️</button>
+    </form>
+  </div>
+  {% else %}<p style="color:#6c757d; text-align:center; padding:2rem;">Belum ada soal pre-test</p>{% endfor %}
+</div>
+
+<div id="tab-post" class="tab-content">
+  {% for q in post_q %}
+  <div class="soal-card">
+    <div class="soal-num">{{ loop.index }}</div>
+    <div class="soal-body">
+      <div class="soal-text">{{ q.soal }}</div>
+      <div class="soal-opts">
+        <span {% if q.jawaban_benar == 'a' %}class="correct"{% endif %}>A. {{ q.pilihan_a }}</span>
+        <span {% if q.jawaban_benar == 'b' %}class="correct"{% endif %}>B. {{ q.pilihan_b }}</span>
+        <span {% if q.jawaban_benar == 'c' %}class="correct"{% endif %}>C. {{ q.pilihan_c }}</span>
+        <span {% if q.jawaban_benar == 'd' %}class="correct"{% endif %}>D. {{ q.pilihan_d }}</span>
+      </div>
+    </div>
+    <form method="POST">
+      <input type="hidden" name="action" value="hapus">
+      <input type="hidden" name="id" value="{{ q.id }}">
+      <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Hapus soal ini?')">🗑️</button>
+    </form>
+  </div>
+  {% else %}<p style="color:#6c757d; text-align:center; padding:2rem;">Belum ada soal post-test</p>{% endfor %}
+</div>
+
+<script>
+function switchTab(type, btn) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('show'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-'+type).classList.add('show');
+  btn.classList.add('active');
+}
+</script>
+{% endblock %}

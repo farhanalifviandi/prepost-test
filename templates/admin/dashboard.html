@@ -1,0 +1,86 @@
+{% extends 'admin/base.html' %}
+{% block title %}Admin Dashboard — EduTest SMA{% endblock %}
+{% block admin_css %}
+<style>
+  .stat-cards { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1rem; margin-bottom: 2rem; }
+  @media (max-width: 900px) { .stat-cards { grid-template-columns: repeat(2, 1fr); } }
+  .stat-card {
+    background: white; border-radius: 16px; padding: 1.4rem;
+    border: 1px solid rgba(255,215,0,0.15);
+    text-align: center;
+  }
+  .stat-icon { font-size: 1.75rem; margin-bottom: 0.5rem; }
+  .stat-val { font-family: 'Playfair Display', serif; font-size: 2rem; font-weight: 700; color: #1A1200; }
+  .stat-label { font-size: 0.78rem; color: #6c757d; text-transform: uppercase; letter-spacing: 0.06em; }
+  .stat-card.gold { background: linear-gradient(135deg, #1A1200, #3D2B00); }
+  .stat-card.gold .stat-val { background: linear-gradient(135deg, #FFD700, #FFA500); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .stat-card.gold .stat-label { color: rgba(255,215,0,0.4); }
+
+  .quick-actions { display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 2rem; }
+
+  .info-card { background: white; border-radius: 16px; padding: 1.5rem; border: 1px solid rgba(255,215,0,0.15); }
+  .info-card h3 { font-family: 'Playfair Display', serif; font-size: 1.1rem; margin-bottom: 1rem; }
+  .info-item { display: flex; justify-content: space-between; align-items: center; padding: 0.6rem 0; border-bottom: 1px solid rgba(255,215,0,0.1); font-size: 0.88rem; }
+  .info-item:last-child { border-bottom: none; }
+  .info-item strong { color: #1A1200; font-weight: 600; }
+  .info-item span { color: #6c757d; }
+</style>
+{% endblock %}
+{% block admin_content %}
+<div class="page-header">
+  <h1>📊 Dashboard Admin</h1>
+  <p>Pantau perkembangan siswa dalam pre-post test</p>
+</div>
+
+<div class="stat-cards">
+  <div class="stat-card">
+    <div class="stat-icon">👥</div>
+    <div class="stat-val">{{ total_siswa }}</div>
+    <div class="stat-label">Total Siswa</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon">📝</div>
+    <div class="stat-val">{{ total_pre }}</div>
+    <div class="stat-label">Sudah Pre-Test</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon">📋</div>
+    <div class="stat-val">{{ total_post }}</div>
+    <div class="stat-label">Sudah Post-Test</div>
+  </div>
+  <div class="stat-card gold">
+    <div class="stat-icon">⚡</div>
+    <div class="stat-val">{{ avg_pre }}</div>
+    <div class="stat-label">Rata-rata Pre</div>
+  </div>
+  <div class="stat-card gold">
+    <div class="stat-icon">🏆</div>
+    <div class="stat-val">{{ avg_post }}</div>
+    <div class="stat-label">Rata-rata Post</div>
+  </div>
+</div>
+
+<div class="quick-actions">
+  <a href="{{ url_for('admin_hasil') }}" class="btn btn-primary">📈 Lihat Semua Hasil</a>
+  <a href="{{ url_for('admin_export') }}" class="btn btn-secondary">💾 Export CSV</a>
+  <a href="{{ url_for('admin_soal') }}" class="btn btn-outline">📝 Kelola Soal</a>
+  <a href="{{ url_for('admin_materi') }}" class="btn btn-outline">📚 Kelola Materi</a>
+</div>
+
+<div class="info-card">
+  <h3>🔑 Informasi Akun</h3>
+  <div class="info-item"><strong>Admin Username</strong><span>admin</span></div>
+  <div class="info-item"><strong>Admin Password Default</strong><span>admin123</span></div>
+  <div class="info-item"><strong>Total Siswa Terdaftar</strong><span>{{ total_siswa }} siswa</span></div>
+  <div class="info-item"><strong>Progress Pre-Test</strong><span>{{ total_pre }} / {{ total_siswa }} siswa</span></div>
+  <div class="info-item"><strong>Progress Post-Test</strong><span>{{ total_post }} / {{ total_siswa }} siswa</span></div>
+  {% if total_pre > 0 and total_post > 0 %}
+  <div class="info-item">
+    <strong>Peningkatan Rata-rata</strong>
+    <span style="color: {% if avg_post > avg_pre %}#28a745{% else %}#dc3545{% endif %}; font-weight: 600;">
+      {% if avg_post > avg_pre %}▲ +{% else %}▼ {% endif %}{{ "%.1f"|format(avg_post - avg_pre) }}
+    </span>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

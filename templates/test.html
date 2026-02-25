@@ -1,0 +1,252 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }} — EduTest SMA{% endblock %}
+{% block extra_css %}
+<style>
+  .test-header {
+    background: linear-gradient(135deg, #1A1200, #3D2B00);
+    border-radius: 20px;
+    padding: 2rem 2.5rem;
+    margin-bottom: 2rem;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+  .test-header-left h1 { font-family: 'Playfair Display', serif; font-size: 1.75rem; }
+  .test-header-left h1 span { background: linear-gradient(135deg, #FFD700, #FFA500); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .test-header-left p { color: rgba(255,215,0,0.5); font-size: 0.88rem; margin-top: 0.3rem; }
+  .timer-box {
+    background: rgba(255,215,0,0.1);
+    border: 2px solid rgba(255,215,0,0.3);
+    border-radius: 14px;
+    padding: 0.75rem 1.5rem;
+    text-align: center;
+  }
+  .timer-label { font-size: 0.7rem; color: rgba(255,215,0,0.5); text-transform: uppercase; letter-spacing: 0.1em; }
+  .timer-val { font-family: 'Playfair Display', serif; font-size: 2rem; color: #FFD700; font-weight: 700; }
+  .timer-val.warning { color: #FF6B6B; animation: pulse 1s infinite; }
+  @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.5; } }
+
+  .progress-bar-top { background: rgba(255,215,0,0.15); height: 6px; border-radius: 3px; margin-bottom: 2rem; overflow: hidden; }
+  .progress-bar-fill { height: 100%; background: linear-gradient(90deg, #FFD700, #FFA500); transition: width 0.3s; }
+
+  .question-card {
+    background: white;
+    border-radius: 16px;
+    padding: 1.75rem;
+    margin-bottom: 1.5rem;
+    border: 2px solid rgba(255,215,0,0.12);
+    transition: border-color 0.2s;
+  }
+  .question-card.answered { border-color: rgba(40,167,69,0.3); }
+  .q-num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px; height: 32px;
+    background: linear-gradient(135deg, #FFD700, #FFA500);
+    color: #1A1200;
+    border-radius: 50%;
+    font-weight: 700;
+    font-size: 0.85rem;
+    margin-bottom: 0.75rem;
+  }
+  .q-text { font-size: 1rem; font-weight: 600; color: #1A1200; line-height: 1.6; margin-bottom: 1.25rem; }
+
+  .options { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+  @media (max-width: 600px) { .options { grid-template-columns: 1fr; } }
+  .option-label {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    border: 2px solid rgba(255,215,0,0.2);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: #FFFDF0;
+  }
+  .option-label:hover { border-color: #FFA500; background: #FFF9E0; }
+  .option-label input[type=radio] { display: none; }
+  .option-label input[type=radio]:checked + .opt-indicator { background: linear-gradient(135deg, #FFD700, #FFA500); border-color: #FFA500; color: #1A1200; }
+  .option-label:has(input:checked) { border-color: #FFA500; background: linear-gradient(135deg, #FFF9E0, #FFF5CC); box-shadow: 0 2px 12px rgba(255,165,0,0.15); }
+  .opt-indicator {
+    min-width: 28px; height: 28px;
+    border: 2px solid rgba(255,200,0,0.4);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 0.8rem;
+    transition: all 0.2s;
+    color: #8B6914;
+  }
+  .opt-text { font-size: 0.92rem; color: #1A1200; line-height: 1.4; }
+
+  .submit-area {
+    background: white;
+    border-radius: 16px;
+    padding: 2rem;
+    margin-top: 2rem;
+    border: 2px solid rgba(255,215,0,0.2);
+    text-align: center;
+  }
+  .submit-info { margin-bottom: 1.25rem; }
+  .submit-info .count { font-family: 'Playfair Display', serif; font-size: 1.75rem; font-weight: 700; color: #FFA500; }
+  .submit-info p { font-size: 0.88rem; color: #6c757d; margin-top: 0.2rem; }
+  .btn-submit {
+    padding: 0.9rem 3rem;
+    background: linear-gradient(135deg, #FFD700, #FFA500);
+    color: #1A1200;
+    font-weight: 700;
+    font-size: 1.05rem;
+    border: none;
+    border-radius: 30px;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    transition: all 0.25s;
+    box-shadow: 0 4px 20px rgba(255,165,0,0.35);
+  }
+  .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(255,165,0,0.5); }
+  .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+  .nav-dots { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 2rem; }
+  .dot {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    border: 2px solid rgba(255,200,0,0.3);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.75rem; font-weight: 600;
+    cursor: pointer; color: #8B6914;
+    transition: all 0.15s;
+  }
+  .dot.answered { background: linear-gradient(135deg, #FFD700, #FFA500); border-color: #FFA500; color: #1A1200; }
+  .dot:hover { transform: scale(1.1); }
+</style>
+{% endblock %}
+{% block content %}
+<div class="main-content">
+  <div class="test-header">
+    <div class="test-header-left">
+      <h1>{{ "📝" if test_type == 'pre' else "📋" }} <span>{{ title }}</span></h1>
+      <p>{{ questions|length }} soal pilihan ganda · Waktu {{ 20 if test_type == 'pre' else 20 }} menit</p>
+    </div>
+    <div class="timer-box">
+      <div class="timer-label">Sisa Waktu</div>
+      <div class="timer-val" id="timer">20:00</div>
+    </div>
+  </div>
+
+  <div class="progress-bar-top">
+    <div class="progress-bar-fill" id="progressFill" style="width:0%"></div>
+  </div>
+
+  <div class="nav-dots" id="navDots">
+    {% for q in questions %}
+    <div class="dot" id="dot-{{ loop.index }}" onclick="scrollToQ({{ loop.index }})">{{ loop.index }}</div>
+    {% endfor %}
+  </div>
+
+  <form method="POST" id="testForm">
+    {% for q in questions %}
+    <div class="question-card" id="qcard-{{ loop.index }}">
+      <div class="q-num">{{ loop.index }}</div>
+      <div class="q-text">{{ q.soal }}</div>
+      <div class="options">
+        {% for letter, text in [('a', q.pilihan_a), ('b', q.pilihan_b), ('c', q.pilihan_c), ('d', q.pilihan_d)] %}
+        <label class="option-label" onclick="markAnswered({{ loop.index }}, {{ forloop.parentloop.index }})">
+          <input type="radio" name="q_{{ q.id }}" value="{{ letter }}" onchange="updateProgress()">
+          <span class="opt-indicator">{{ letter.upper() }}</span>
+          <span class="opt-text">{{ text }}</span>
+        </label>
+        {% endfor %}
+      </div>
+    </div>
+    {% endfor %}
+
+    <div class="submit-area">
+      <div class="submit-info">
+        <div class="count"><span id="answeredCount">0</span>/{{ questions|length }}</div>
+        <p>soal sudah dijawab</p>
+      </div>
+      <button type="button" class="btn-submit" onclick="confirmSubmit()">
+        Kumpulkan Jawaban 🎯
+      </button>
+    </div>
+  </form>
+</div>
+
+<div id="confirmModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:999; align-items:center; justify-content:center;">
+  <div style="background:white; border-radius:20px; padding:2.5rem; max-width:420px; width:90%; text-align:center;">
+    <div style="font-size:2.5rem; margin-bottom:1rem;">📤</div>
+    <h3 style="font-family:'Playfair Display',serif; font-size:1.4rem; margin-bottom:0.5rem;">Kumpulkan Jawaban?</h3>
+    <p id="confirmText" style="color:#6c757d; font-size:0.9rem; margin-bottom:1.5rem;"></p>
+    <div style="display:flex; gap:1rem; justify-content:center;">
+      <button onclick="closeModal()" style="padding:0.6rem 1.5rem; border:2px solid #dee2e6; background:white; border-radius:20px; cursor:pointer; font-family:'DM Sans',sans-serif; font-weight:600;">Periksa Lagi</button>
+      <button onclick="document.getElementById('testForm').submit()" style="padding:0.6rem 1.5rem; background:linear-gradient(135deg,#FFD700,#FFA500); border:none; border-radius:20px; cursor:pointer; font-family:'DM Sans',sans-serif; font-weight:700; color:#1A1200;">Ya, Kumpulkan!</button>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+  const totalQ = {{ questions|length }};
+  let seconds = 20 * 60;
+  let answered = {};
+
+  function updateProgress() {
+    let count = 0;
+    document.querySelectorAll('input[type=radio]:checked').forEach(r => {
+      const name = r.name;
+      answered[name] = true;
+      count++;
+    });
+    document.getElementById('answeredCount').textContent = count;
+    document.getElementById('progressFill').style.width = (count/totalQ*100) + '%';
+
+    // update dots
+    document.querySelectorAll('input[type=radio]:checked').forEach(r => {
+      const card = r.closest('.question-card');
+      if (card) {
+        const idx = card.id.replace('qcard-','');
+        document.getElementById('dot-'+idx)?.classList.add('answered');
+        card.classList.add('answered');
+      }
+    });
+  }
+
+  function markAnswered(letterIdx, qIdx) {
+    setTimeout(updateProgress, 50);
+  }
+
+  function scrollToQ(n) {
+    document.getElementById('qcard-'+n)?.scrollIntoView({behavior:'smooth', block:'center'});
+  }
+
+  function confirmSubmit() {
+    const count = document.querySelectorAll('input[type=radio]:checked').length;
+    const remaining = totalQ - count;
+    document.getElementById('confirmText').textContent = 
+      remaining > 0 ? `Masih ada ${remaining} soal belum dijawab. Yakin mau dikumpulkan?` : `Semua ${totalQ} soal sudah dijawab. Siap dikumpulkan?`;
+    document.getElementById('confirmModal').style.display = 'flex';
+  }
+
+  function closeModal() {
+    document.getElementById('confirmModal').style.display = 'none';
+  }
+
+  // Timer
+  const timerEl = document.getElementById('timer');
+  const interval = setInterval(() => {
+    seconds--;
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    timerEl.textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+    if (seconds <= 60) timerEl.classList.add('warning');
+    if (seconds <= 0) {
+      clearInterval(interval);
+      document.getElementById('testForm').submit();
+    }
+  }, 1000);
+</script>
+{% endblock %}
