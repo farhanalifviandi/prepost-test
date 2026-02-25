@@ -7,8 +7,25 @@ import json
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'prepost-secret-2024-sma')
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///prepost.db')
+
+# ─── Neon PostgreSQL / SQLite config ──────────────────────────────────────────
+DATABASE_URL = os.environ.get('DATABASE_URL', 'sqlite:///prepost.db')
+
+# Neon memberikan URL dengan prefix 'postgres://' — SQLAlchemy butuh 'postgresql://'
+# Juga pastikan pakai driver psycopg2
+if DATABASE_URL.startswith('postgres://'):
+    DATABASE_URL = DATABASE_URL.replace('postgres://', 'postgresql+psycopg2://', 1)
+elif DATABASE_URL.startswith('postgresql://') and '+psycopg2' not in DATABASE_URL:
+    DATABASE_URL = DATABASE_URL.replace('postgresql://', 'postgresql+psycopg2://', 1)
+
+app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+# Penting untuk Neon: koneksi di-recycle agar tidak stale (Neon scale-to-zero)
+app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+    'pool_pre_ping': True,      # cek koneksi sebelum query
+    'pool_recycle': 300,        # recycle koneksi setiap 5 menit
+    'connect_args': {'sslmode': 'require'} if 'neon.tech' in DATABASE_URL else {}
+}
 
 db = SQLAlchemy(app)
 
